@@ -1,0 +1,89 @@
+{% extends 'layout/base.html' %}
+{% block title %}Gọi món - Bàn {{ table.table_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-info m-0">PHIẾU GỌI MÓN - BÀN {{ table.table_number }}</h3>
+    <a href="/waiter" class="btn btn-secondary btn-sm">Quay lại sơ đồ bàn</a>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="mb-2">
+            <a href="/waiter/table/{{ table.id }}" class="btn btn-sm btn-outline-dark">Tất cả</a>
+            {% for c in categories %}
+            <a href="/waiter/table/{{ table.id }}?cate_id={{ c.id }}" class="btn btn-sm btn-outline-primary">{{ c.name }}</a>
+            {% endfor %}
+        </div>
+
+        <form method="get" class="d-flex mb-3">
+            <input type="text" name="q" class="form-control me-2" placeholder="Tìm tên món...">
+            <button class="btn btn-primary" type="submit">Tìm</button>
+        </form>
+
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên món</th>
+                    <th>Giá</th>
+                    <th style="width: 260px;">Gọi món</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in dishes %}
+                <tr>
+                    <td>{{ d.code }}</td>
+                    <td>{{ d.name }}</td>
+                    <td>{{ "{:,.0f}".format(d.price) }} đ</td>
+                    <td>
+                        <form method="post" action="/waiter/table/{{ table.id }}/add" class="d-flex gap-1">
+                            <input type="hidden" name="dish_id" value="{{ d.id }}">
+                            <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="width: 60px;">
+                            <input type="text" name="note" placeholder="Ghi chú" class="form-control form-control-sm">
+                            <button type="submit" class="btn btn-success btn-sm">Thêm</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-dark text-white">Phiếu gọi món hiện tại</div>
+            <div class="card-body p-2">
+                {% if order and order.details %}
+                <table class="table table-sm table-bordered mb-0">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Bàn số</th>
+                            <th>Món ăn</th>
+                            <th>Số lượng</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.details %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ table.table_number }}</td>
+                            <td>
+                                {{ item.dish.name }}
+                                {% if item.note %}<br><small class="text-muted">({{ item.note }})</small>{% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td><span class="badge bg-info text-dark">{{ status_labels[item.status.value] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted text-center my-3">Bàn chưa gọi món nào.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

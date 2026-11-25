@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for
 from flask_login import login_user, logout_user, current_user
 from RestaurantApp import app, db, login, dao
 from RestaurantApp.models import UserRole
+from RestaurantApp.utils import role_required
 
 STATUS_LABELS = {
     "PENDING": "Chờ nấu",
@@ -64,8 +65,44 @@ def logout_my_user():
     return redirect(url_for("login_my_user"))
 
 @app.route("/waiter")
+@role_required(UserRole.WAITER, UserRole.ADMIN)
 def waiter_tables():
-    return "Trang Phục vụ - <a href='/logout'>Đăng xuất</a>"
+    return render_template("waiter/tables.html", tables=dao.load_tables())
+
+
+@app.route("/waiter/table/<int:table_id>")
+@role_required(UserRole.WAITER, UserRole.ADMIN)
+def waiter_order_page(table_id):
+    table = dao.get_table_by_id(table_id)
+    if not table:
+        return redirect(url_for("waiter_tables"))
+
+    q = request.args.get("q")
+    cate_id = request.args.get("cate_id")
+    order = dao.get_open_order_by_table(table_id)
+    return render_template(
+        "waiter/order.html",
+        table=table,
+        order=order,
+        categories=dao.load_categories(),
+        dishes=dao.load_dishes(q=q, cate_id=cate_id),
+    )
+
+
+@app.route("/waiter/table/<int:table_id>/add", methods=["POST"])
+@role_required(UserRole.WAITER, UserRole.ADMIN)
+def waiter_add_item(table_id):
+    dish_id = request.form.get("dish_id")
+    quantity = request.form.get("quantity", 1)
+    note = request.form.get("note", "")
+    dao.add_item_to_table_order(
+        table_id=table_id,
+        waiter_id=current_user.id,
+        dish_id=dish_id,
+        quantity=quantity,
+        note=note,
+    )
+    return redirect(url_for("waiter_order_page", table_id=table_id))
 
 
 @app.route("/kitchen")
@@ -87,3 +124,4 @@ def admin_login_process():
         login_user(u)
         return redirect("/admin")
     return render_template("admin/index.html", err_msg="Tài khoản không đúng hoặc không có quyền quản trị!")
+

@@ -1,0 +1,39 @@
+{% extends 'layout/base.html' %}
+{% block title %}Sơ đồ bàn{% endblock %}
+
+{% block head %}
+<meta http-equiv="refresh" content="5">
+{% endblock %}
+
+{% block content %}
+<h3 class="text-info text-center mb-3">SƠ ĐỒ BÀN - PHỤC VỤ</h3>
+
+{% if unread_notis %}
+    {% for n in unread_notis %}
+    <div class="alert alert-success d-flex justify-content-between align-items-center">
+        <span><strong>Thông báo từ Bếp:</strong> {{ n.message }} ({{ n.created_at.strftime('%H:%M:%S') }})</span>
+        <form method="post" action="/notifications/{{ n.id }}/read" class="m-0">
+            <button type="submit" class="btn btn-sm btn-outline-success">Đã nhận món</button>
+        </form>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row">
+    {% for t in tables %}
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center {% if t.status.value == 'OCCUPIED' %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-body">
+                <h4 class="card-title">Bàn {{ t.table_number }}</h4>
+                {% if t.status.value == 'OCCUPIED' %}
+                    <p><span class="badge bg-danger">Đang có khách</span></p>
+                {% else %}
+                    <p><span class="badge bg-success">Trống</span></p>
+                {% endif %}
+                <a href="/waiter/table/{{ t.id }}" class="btn btn-primary btn-sm">Gọi món / Xem phiếu</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
