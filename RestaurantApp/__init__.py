@@ -15,5 +15,5 @@ app.config["DISCOUNT_THRESHOLD"] = 500000
 app.config["DISCOUNT_RATE"] = 0.05
 
 db = SQLAlchemy(app)
-login_manager = LoginManager()
+login = LoginManager(app)
 login.login_view = 'login_my_user'
