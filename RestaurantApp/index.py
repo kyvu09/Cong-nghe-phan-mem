@@ -76,3 +76,14 @@ def kitchen_dashboard():
 @app.route("/cashier")
 def cashier_dashboard():
     return "Trang Thu ngân - <a href='/logout'>Đăng xuất</a>"
+
+@app.route("/login-admin", methods=["POST"])
+def admin_login_process():
+    u = dao.auth_user(
+        username=request.form.get("username", ""),
+        password=request.form.get("password", ""),
+    )
+    if u and u.role == UserRole.ADMIN:
+        login_user(u)
+        return redirect("/admin")
+    return render_template("admin/index.html", err_msg="Tài khoản không đúng hoặc không có quyền quản trị!")
